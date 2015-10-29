@@ -9,7 +9,11 @@
 
 #define PORT 8080
 #define BACKLOG 10
-// #define THREADS 2
+#define THREADS 2
+
+pthread_t			threads[THREADS];
+int					tasks[THREADS];
+pthread_mutex_t		locks[THREADS];
 
 void execute_bash(int cd, char *cmd)
 {	
@@ -30,7 +34,7 @@ void execute_bash(int cd, char *cmd)
 
 void connection_processor(int cd)
 {
-		printf("[info]: Socket acepted [%d]\n", cd);
+		printf("[net.info]: Socket acepted [%d]\n", cd);
 				
 		while (1)
 		{
@@ -45,7 +49,7 @@ void connection_processor(int cd)
 			cmd[strlen(cmd) - 2] = '\0';	// Delete \r\n
 
 			// Printing command on server
-			printf("[command]: %s\n", cmd);
+			printf("[net.command]: %s\n", cmd);
 
 			// Switch command
 			if (strcmp(cmd, "hello\0") == 0)
@@ -70,7 +74,66 @@ void connection_processor(int cd)
 			}	
 		}
 		
-		printf("[info]: Socket closed [%d]\n", cd);
+		printf("[net.info]: Socket closed [%d]\n", cd);
+}
+
+void *thread_function(void *arg)
+{
+	int id = (int)arg;
+
+	while (1)
+	{		
+		printf("[tp.info]: Thread %d waiting for task\n", id);			
+
+		pthread_mutex_lock(&locks[id]);
+		pthread_mutex_lock(&locks[id]);
+		pthread_mutex_unlock(&locks[id]);
+		
+		printf("[tp.info]: Thread %d start task\n", id);
+		
+		// Do task
+		connection_processor(tasks[id]);
+	}	
+	
+	return 0;
+}
+
+void pool_init()
+{
+	for (int i = 0; i < THREADS; i++)
+	{
+		pthread_mutex_init(&locks[i], NULL);
+		pthread_create(&threads[i], NULL, thread_function, (void *)(long long)i);
+	}
+}
+
+void pool_destroy()
+{
+	for (int i = 0; i < THREADS; i++)
+	{
+		pthread_kill(threads[i], 0);
+		pthread_mutex_destroy(&locks[i]);
+	}
+}
+
+void pool_give_task(int task)
+{
+	for (int i = 0; i < THREADS; i++)
+	{
+		if (pthread_mutex_trylock(&locks[i]))	// Is close, cann't lock
+		{
+			tasks[i] = task;
+			pthread_mutex_unlock(&locks[i]);
+			return;	// Stop search
+		}
+		else	// If was open, open again
+		{
+			pthread_mutex_unlock(&locks[i]);
+		}
+	}
+	
+	close(task);	// Close connection
+	printf("[tp.info]: All threads are bisy. Task declined.\n");
 }
 
 void start_server()
@@ -111,12 +174,14 @@ void start_server()
 			printf("[error]: Accept error\n");
 		}
 		
-		connection_processor(cd);
+		pool_give_task(cd);
 	}
 }
 
 int main()
 {
+	pool_init();
 	start_server();
+	pool_destroy();
 	return 0;
 }
