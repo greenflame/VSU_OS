@@ -1,7 +1,7 @@
 #ifndef MYFS_API_H
 #define MYFS_API_H
 
-#define DATA_FILE "/Users/Alexander/vsu_os/file_system/myfs/mydata.bin"
+#define DATA_FILE "/home/alexander/vsu_ofile_system/myfs/mydata.bin"
 #define HEADERS_COUNT 128
 #define DATA_BLOCKS_COUNT 128
 #define DATA_BLOCK_SIZE (10*1024*1024)

@@ -32,7 +32,8 @@ int fs_create_header(FILE* data_file, header_t header)
 
     // Search for free index
     int index = -1;
-    for (int i = 0; i < HEADERS_COUNT; i++)
+    int i;
+    for (i = 0; i < HEADERS_COUNT; i++)
     {
         if (h_pre[i] == 0)
         {
@@ -95,7 +96,8 @@ int fs_search_header(FILE* data_file, const char* name)
     fread(pre_h, 1, HEADERS_COUNT, data_file);
     
     int result = -1;
-    for (int i = 0; i < HEADERS_COUNT; i++)
+    int i;
+    for (i = 0; i < HEADERS_COUNT; i++)
     {
         if (pre_h[i])   // Header exists
         {

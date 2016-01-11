@@ -8,6 +8,7 @@
 
 #include "myfs_api.h"
 
+#define FUSE_USE_VERSION 26
 #define LOG_FILE "/Users/Alexander/vsu_os/file_system/myfs/log.txt"
 
 static void log(const char *msg)
@@ -70,7 +71,8 @@ static int myfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     char pre_h[HEADERS_COUNT];
     fread(pre_h, 1, HEADERS_COUNT, data_file);
     
-    for (int i = 0; i < HEADERS_COUNT; i++)
+    int i;
+    for (i = 0; i < HEADERS_COUNT; i++)
     {
         if (pre_h[i])
         {
