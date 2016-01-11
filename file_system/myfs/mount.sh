@@ -1,0 +1,2 @@
+make
+./myfs -d myvlm
